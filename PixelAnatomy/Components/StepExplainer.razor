@@ -1,0 +1,30 @@
+﻿@* Карточка одного шага разбора. *@
+<div class="step @(IsActive ? "step--active" : "")">
+    <div class="step__header">
+        <span class="step__num">Шаг @Number</span>
+        <span class="step__title">@Title</span>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Formula))
+    {
+        <div class="step__formula"><code>@Formula</code></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Substitution))
+    {
+        <div class="step__substitution"><code>@Substitution</code></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Explanation))
+    {
+        <div class="step__explanation">@Explanation</div>
+    }
+    @ChildContent
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int Number { get; set; }
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Formula { get; set; }
+    [Parameter] public string? Substitution { get; set; }
+    [Parameter] public string? Explanation { get; set; }
+    [Parameter] public bool IsActive { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

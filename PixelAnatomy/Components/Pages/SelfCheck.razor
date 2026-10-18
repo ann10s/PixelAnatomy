@@ -1,0 +1,204 @@
+﻿@page "/selfcheck"
+@rendermode InteractiveServer
+@inject IImageMathService MathService
+
+<PageTitle>Самостоятельные задачи</PageTitle>
+
+<h1>Самостоятельные задачи</h1>
+<p class="lead">
+    Семь задач на глубину цвета и объём изображения. Введите ответы и нажмите
+    «Проверить всё». Оценка и разбор ошибок появятся ниже.
+</p>
+
+@foreach (var task in _tasks)
+{
+    <div class="card">
+        <h2>Задача @task.Number</h2>
+        <p>@task.Question</p>
+
+        <label class="field">
+            <span>@task.AnswerLabel</span>
+            <input type="number" min="0" step="1"
+                   value="@task.UserInput"
+                   @oninput="e => SetUserInput(task, e)"
+                   disabled="@_checked" />
+        </label>
+    </div>
+}
+
+<div class="controls">
+    <button class="btn" @onclick="CheckAll" disabled="@_checked">Проверить всё</button>
+    <button class="btn btn--ghost" @onclick="ResetAll">Пройти заново</button>
+</div>
+
+@if (_checked)
+{
+    <div class="card card--quiz">
+        <h2>Итог</h2>
+        <p>Решено верно: <b>@_tasks.Count(t => t.Correct)</b> из @_tasks.Count.</p>
+        <p>Оценка по 7-балльной шкале: <b>@Score</b>.</p>
+    </div>
+
+    @if (_tasks.Any(t => !t.Correct))
+    {
+        <h2>Разбор ошибок</h2>
+        @foreach (var task in _tasks.Where(t => !t.Correct))
+        {
+            <div class="card card--err">
+                <h2>Задача @task.Number</h2>
+                <p>@task.Question</p>
+                <p>
+                    Ваш ответ: <b>@(string.IsNullOrEmpty(task.UserInput) ? "–" : task.UserInput)</b>.
+                    Правильный: <b>@task.ExpectedDisplay</b>.
+                </p>
+                <div class="task-solution">
+                    Решение: @task.Solution
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card card--ok">
+            <p>Все задачи решены верно – отличный результат!</p>
+        </div>
+    }
+}
+
+@code {
+    private sealed class TaskItem
+    {
+        public int Number { get; init; }
+        public string Question { get; init; } = "";
+        public string AnswerLabel { get; init; } = "Ответ:";
+        public Func<long, bool> Checker { get; init; } = _ => false;
+        public long Expected { get; init; }
+        public string ExpectedDisplay { get; init; } = "";
+        public string Solution { get; init; } = "";
+
+        public string UserInput { get; set; } = "";
+        public bool Correct { get; set; }
+    }
+
+    private readonly List<TaskItem> _tasks = new();
+    private bool _checked;
+
+    protected override void OnInitialized() => BuildTasks();
+
+    private void SetUserInput(TaskItem task, ChangeEventArgs e)
+    {
+        task.UserInput = e.Value?.ToString() ?? "";
+    }
+
+    private void BuildTasks()
+    {
+        _tasks.Clear();
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 1,
+            Question = "Палитра содержит 32 цвета. Какова глубина цвета i (бит)?",
+            AnswerLabel = "i (бит):",
+            Expected = 5,
+            ExpectedDisplay = "5",
+            Checker = v => v == 5,
+            Solution = "32 = 2^5, значит i = 5 бит."
+        });
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 2,
+            Question = "Изображение 100×100 пикселей, i = 8 бит. Объём в байтах?",
+            AnswerLabel = "V (байт):",
+            Expected = 10_000,
+            ExpectedDisplay = "10 000",
+            Checker = v => v == 10_000,
+            Solution = "V = 100·100·8 = 80 000 бит = 10 000 байт."
+        });
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 3,
+            Question = "Палитра содержит 100 цветов. Какова глубина цвета i (бит)?",
+            AnswerLabel = "i (бит):",
+            Expected = 7,
+            ExpectedDisplay = "7",
+            Checker = v => v == 7,
+            Solution = "2^6 = 64 < 100 ≤ 128 = 2^7, поэтому i = 7 бит."
+        });
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 4,
+            Question = "Изображение 1024×768, i = 8 бит. Объём в КБ?",
+            AnswerLabel = "V (КБ):",
+            Expected = 768,
+            ExpectedDisplay = "768",
+            Checker = v => v == 768,
+            Solution = "V = 1024·768·8 = 6 291 456 бит = 786 432 байт = 768 КБ."
+        });
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 5,
+            Question = "Глубина цвета i = 4 бита. Сколько цветов N в палитре?",
+            AnswerLabel = "N (цветов):",
+            Expected = 16,
+            ExpectedDisplay = "16",
+            Checker = v => v == 16,
+            Solution = "N = 2^4 = 16."
+        });
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 6,
+            Question = "Изображение 200×200, i = 4 бита. Объём в байтах?",
+            AnswerLabel = "V (байт):",
+            Expected = 20_000,
+            ExpectedDisplay = "20 000",
+            Checker = v => v == 20_000,
+            Solution = "V = 200·200·4 = 160 000 бит = 20 000 байт."
+        });
+
+        _tasks.Add(new TaskItem
+        {
+            Number = 7,
+            Question = "Во сколько раз увеличится объём, если и W, и H увеличить вдвое?",
+            AnswerLabel = "Во сколько раз:",
+            Expected = 4,
+            ExpectedDisplay = "4",
+            Checker = v => v == 4,
+            Solution = "V = W·H·i. Если W → 2W, H → 2H, то V → 4V."
+        });
+    }
+
+    private static bool HasLeadingZero(string s) =>
+        s.Length > 1 && s[0] == '0';
+
+    private void CheckAll()
+    {
+        foreach (var t in _tasks)
+        {
+            // Пустая строка, ведущий ноль или не-число → задача неверна.
+            if (string.IsNullOrWhiteSpace(t.UserInput) || HasLeadingZero(t.UserInput))
+            {
+                t.Correct = false;
+                continue;
+            }
+            t.Correct = long.TryParse(t.UserInput, out var v) && t.Checker(v);
+        }
+        _checked = true;
+    }
+
+    private void ResetAll()
+    {
+        foreach (var t in _tasks)
+        {
+            t.UserInput = "";
+            t.Correct = false;
+        }
+        _checked = false;
+    }
+
+    private int Score => _tasks.Count(t => t.Correct);
+}

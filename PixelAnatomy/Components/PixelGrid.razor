@@ -1,0 +1,72 @@
+﻿@* Сетка пикселей. Стороны > 12 масштабируются до 12, меньшие сохраняются как есть.
+   Число различных цветов = min(2^BitsPerPixel, 64). *@
+<div class="pixel-grid-wrap">
+    <div class="pixel-grid" style="grid-template-columns: repeat(@Cols, 1fr);">
+        @for (int r = 0; r < Rows; r++)
+        {
+            for (int c = 0; c < Cols; c++)
+            {
+                int idx = r * Cols + c;
+                <div class="pixel"
+                     style="background:@ColorFor(idx)"
+                     title="Пиксель #@idx">
+                </div>
+            }
+        }
+    </div>
+    <div class="pixel-grid__caption">
+        @if (IsScaled)
+        {
+            <span>Показана условная модель <b>@Cols×@Rows</b>.
+                  Реальный размер: <b>@RealWidth×@RealHeight</b> =
+                  <b>@((long)RealWidth * RealHeight)</b> пикселей.</span>
+        }
+        else
+        {
+            <span>Показано изображение <b>@RealWidth×@RealHeight</b> =
+                  <b>@((long)RealWidth * RealHeight)</b> пикселей (реальный размер).</span>
+        }
+        <br />
+        @if (IsPaletteTruncated)
+        {
+            <span>Палитра на модели условная: показано <b>@ColorCount</b> цветов
+                  из <b>@RealColorCount</b> (i = @BitsPerPixel бит).</span>
+        }
+        else
+        {
+            <span>Цветов в палитре: <b>@ColorCount</b> (i = @BitsPerPixel бит).</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int RealWidth { get; set; }
+    [Parameter, EditorRequired] public int RealHeight { get; set; }
+    [Parameter, EditorRequired] public int BitsPerPixel { get; set; }
+
+    private const int MaxSide = 12;
+    private const int MaxDisplayedColors = 64;
+
+    private int Cols => Math.Min(RealWidth, MaxSide);
+    private int Rows => Math.Min(RealHeight, MaxSide);
+
+    private bool IsScaled => RealWidth > MaxSide || RealHeight > MaxSide;
+
+    /// <summary>Реальное число цветов палитры при заданной глубине i. Может быть очень большим.</summary>
+    private long RealColorCount => BitsPerPixel >= 62 ? long.MaxValue : (1L << BitsPerPixel);
+
+    /// <summary>Сколько цветов реально рисуем на модели (капнуто до 64).</summary>
+    private int ColorCount => (int)Math.Min(RealColorCount, MaxDisplayedColors);
+
+    /// <summary>True, если реальная палитра больше, чем можем показать.</summary>
+    private bool IsPaletteTruncated => RealColorCount > MaxDisplayedColors;
+
+    private string ColorFor(int idx)
+    {
+        int n = ColorCount;
+        if (n <= 1) return "hsl(0, 0%, 60%)";
+        int slot = idx % n;
+        double hue = 360.0 * slot / n;
+        return $"hsl({hue:0}, 70%, 55%)";
+    }
+}

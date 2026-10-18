@@ -1,0 +1,235 @@
+﻿@page "/task2"
+@rendermode InteractiveServer
+@inject IImageMathService MathService
+
+<PageTitle>Задача 2. Объём изображения</PageTitle>
+
+<h1>Задача 2. Объём растрового изображения</h1>
+<p class="lead">
+    Дано: ширина W, высота H и глубина цвета i (бит/пиксель). Найти объём V.
+</p>
+
+<div class="card">
+    <h2>Теория</h2>
+    <p>
+        Объём растрового изображения <b>V</b> – это суммарное число бит, необходимое
+        для хранения всех пикселей, без учёта заголовков и служебных данных.
+    </p>
+    <p>Формулы:</p>
+    <div class="formula-big">
+        P = W · H<br />
+        V<sub>бит</sub> = P · i = W · H · i<br />
+        V<sub>байт</sub> = V<sub>бит</sub> / 8<br />
+        V<sub>КБ</sub> = V<sub>байт</sub> / 1024
+    </div>
+    <p>
+        Единицы: 1 байт = 8 бит, 1 КБ = 1024 байта, 1 МБ = 1024 КБ, 1 ГБ = 1024 МБ.
+        Округление выполняем только на последнем шаге.
+    </p>
+</div>
+
+<div class="card">
+    <h2>Исходные данные</h2>
+    <label class="field">
+        <span>Ширина W (пикс):</span>
+        <input type="number" min="1" max="100000" value="@_wInput" @oninput="OnWInput" />
+    </label>
+    <label class="field">
+        <span>Высота H (пикс):</span>
+        <input type="number" min="1" max="100000" value="@_hInput" @oninput="OnHInput" />
+    </label>
+    <label class="field">
+        <span>Глубина цвета i (бит/пиксель):</span>
+        <input type="number" min="1" max="48" value="@_iInput" @oninput="OnIInput" />
+    </label>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="error">@_error</div>
+    }
+
+    <div class="chips">
+        <button class="chip" @onclick="() => SetPreset(16, 16, 4)">Вводный: 16×16, i = 4</button>
+        <button class="chip" @onclick="() => SetPreset(10, 11, 8)">Малый: 10×11, i = 8</button>
+        <button class="chip" @onclick="() => SetPreset(1920, 1080, 24)">Основной: 1920×1080, i = 24</button>
+        <button class="chip" @onclick="() => SetPreset(100, 100, 3)">Особый: 100×100, i = 3</button>
+        <button class="chip chip--warn" @onclick="Reset">Сбросить</button>
+    </div>
+
+    <div class="controls">
+        <button class="btn" @onclick="Apply" disabled="@(!_canApply)">Применить</button>
+    </div>
+</div>
+
+<div class="card card--quiz">
+    <h2>Вопрос 1</h2>
+    <p>Чему равен объём изображения <b>V</b> в битах?</p>
+    <input type="number" min="0"
+           value="@_answer1Input"
+           @oninput="OnAnswer1Input" />
+    <div class="controls">
+        <button class="btn" @onclick="CheckAnswer1">Проверить</button>
+    </div>
+    @if (_answer1Checked)
+    {
+        <div class="@(_answer1Correct ? "ok" : "error")">
+            @(_answer1Correct ? "Верно!" : $"Неверно. Правильно: {_img.TotalBits} бит.")
+        </div>
+
+        @if (!_answer1Correct)
+        {
+            <div class="steps">
+                <StepExplainer Number="1"
+                               Title="Считаем количество пикселей"
+                               Formula="P = W · H"
+                               Substitution="@($"P = {_img.Width} · {_img.Height} = {_img.PixelCount}")"
+                               Explanation="Каждый пиксель – отдельная единица изображения."
+                               IsActive="true" />
+                <StepExplainer Number="2"
+                               Title="Считаем объём в битах"
+                               Formula="V_бит = P · i"
+                               Substitution="@($"V_бит = {_img.PixelCount} · {_img.BitsPerPixel} = {_img.TotalBits} бит")"
+                               Explanation="На каждый пиксель отводится i бит."
+                               IsActive="true" />
+                <StepExplainer Number="3"
+                               Title="Переводим в байты и КБ (для справки)"
+                               Formula="V_байт = V_бит / 8;  V_КБ = V_байт / 1024"
+                               Substitution="@_result.Substitution"
+                               Explanation="1 байт = 8 бит, 1 КБ = 1024 байта. Округление – только на выводе."
+                               IsActive="true" />
+            </div>
+        }
+    }
+
+    <h2>Вопрос 2</h2>
+    <p>Если ширину W увеличить вдвое, объём V…</p>
+    <div class="chips">
+        <button class="chip" @onclick="() => CheckAnswer2(true)">увеличится вдвое</button>
+        <button class="chip" @onclick="() => CheckAnswer2(false)">увеличится вчетверо</button>
+        <button class="chip" @onclick="() => CheckAnswer2(false)">не изменится</button>
+    </div>
+    @if (_answer2Checked)
+    {
+        <div class="@(_answer2Correct ? "ok" : "error")">
+            @(_answer2Correct ? "Верно! V пропорционален W." : "Неверно. Объём увеличится ровно вдвое.")
+        </div>
+    }
+</div>
+
+<div class="card">
+    <h2>Визуализация</h2>
+    <PixelGrid RealWidth="@_img.Width" RealHeight="@_img.Height"
+               BitsPerPixel="@_img.BitsPerPixel" />
+    <div class="volume-badges">
+        <span class="badge badge--pixels">@_img.PixelCount пикс.</span>
+        <span class="badge badge--bits">@_img.TotalBits бит</span>
+        <span class="badge badge--bytes">@_result.TotalBytes.ToString("0.##") байт</span>
+        <span class="badge badge--kib">@_result.TotalKib.ToString("0.###") КБ</span>
+    </div>
+</div>
+
+@code {
+    private ImageParameters _img = new();
+    private VolumeResult _result = default!;
+
+    private string _wInput = "16";
+    private string _hInput = "16";
+    private string _iInput = "4";
+    private string? _error;
+    private bool _canApply;
+
+    private string _answer1Input = "";
+    private bool _answer1Checked, _answer1Correct;
+    private bool _answer2Checked, _answer2Correct;
+
+    protected override void OnInitialized() => Recompute(16, 16, 4);
+
+    private void OnWInput(ChangeEventArgs e) { _wInput = e.Value?.ToString() ?? ""; Revalidate(); }
+    private void OnHInput(ChangeEventArgs e) { _hInput = e.Value?.ToString() ?? ""; Revalidate(); }
+    private void OnIInput(ChangeEventArgs e) { _iInput = e.Value?.ToString() ?? ""; Revalidate(); }
+    private void OnAnswer1Input(ChangeEventArgs e) { _answer1Input = e.Value?.ToString() ?? ""; }
+
+    private void Revalidate() => _canApply = TryParseAll(out _, out _, out _);
+
+    private static bool HasLeadingZero(string s) =>
+        s.Length > 1 && s[0] == '0';
+
+    private bool TryParseAll(out int w, out int h, out int i)
+    {
+        w = h = i = 0;
+
+        if (HasLeadingZero(_wInput) || HasLeadingZero(_hInput) || HasLeadingZero(_iInput))
+        {
+            _error = "Числа не должны начинаться с нуля.";
+            return false;
+        }
+
+        if (!int.TryParse(_wInput, out w) ||
+            !int.TryParse(_hInput, out h) ||
+            !int.TryParse(_iInput, out i))
+        {
+            _error = "Все поля должны быть целыми числами.";
+            return false;
+        }
+
+        if (w < 1 || w > 100000 || h < 1 || h > 100000 || i < 1 || i > 48)
+        {
+            _error = "W и H: 1..100000, i: 1..48.";
+            return false;
+        }
+
+        _error = null;
+        return true;
+    }
+
+    private void Apply()
+    {
+        if (!TryParseAll(out var w, out var h, out var i)) return;
+        Recompute(w, h, i);
+    }
+
+    private void Recompute(int w, int h, int i)
+    {
+        _img = new ImageParameters { Width = w, Height = h, BitsPerPixel = i };
+        _result = MathService.ComputeVolume(w, h, i);
+        _answer1Input = "";
+        _answer1Checked = false; _answer1Correct = false;
+        _answer2Checked = false; _answer2Correct = false;
+    }
+
+    private void SetPreset(int w, int h, int i)
+    {
+        _wInput = w.ToString();
+        _hInput = h.ToString();
+        _iInput = i.ToString();
+        _error = null;
+        _canApply = true;
+        Recompute(w, h, i);
+    }
+
+    private void Reset()
+    {
+        _wInput = "16"; _hInput = "16"; _iInput = "4";
+        _error = null;
+        _canApply = false;
+        Recompute(16, 16, 4);
+    }
+
+    private void CheckAnswer1()
+    {
+        if (HasLeadingZero(_answer1Input))
+        {
+            _answer1Checked = true;
+            _answer1Correct = false;
+            return;
+        }
+        _answer1Checked = true;
+        _answer1Correct = long.TryParse(_answer1Input, out var v) && v == _img.TotalBits;
+    }
+
+    private void CheckAnswer2(bool correct)
+    {
+        _answer2Checked = true;
+        _answer2Correct = correct;
+    }
+}

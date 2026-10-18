@@ -1,0 +1,210 @@
+﻿@page "/task1"
+@rendermode InteractiveServer
+@inject IImageMathService MathService
+
+<PageTitle>Задача 1. Глубина цвета</PageTitle>
+
+<h1>Задача 1. Глубина цвета по палитре</h1>
+<p class="lead">
+    Дано число цветов в палитре <b>N</b>. Нужно определить глубину цвета <b>i</b> (бит на пиксель).
+</p>
+
+<div class="card">
+    <h2>Теория</h2>
+    <p>
+        В растровом изображении цвет каждого пикселя хранится в виде двоичного кода
+        фиксированной длины. Если палитра содержит <b>N</b> различных цветов, то
+        минимальное число бит, необходимое для хранения одного пикселя, называют
+        <b>глубиной цвета</b> и обозначают <b>i</b>.
+    </p>
+    <p>Связь между N и i выражается формулой:</p>
+    <div class="formula-big">N = 2<sup>i</sup>  ⇔  i = ⌈log₂ N⌉</div>
+    <p>
+        Если N – точная степень двойки (2, 4, 8, 16, …), то i – целое число.
+        Если N не является степенью двойки (например, 100), округляем вверх:
+        ближайшая степень двойки, вмещающая 100 цветов, – 128 = 2<sup>7</sup>,
+        значит i = 7 бит.
+    </p>
+</div>
+
+<div class="card">
+    <h2>Исходные данные</h2>
+    <label class="field">
+        <span>Число цветов N (от 2 до 16 777 216):</span>
+        <input type="number" min="2" max="16777216"
+               value="@_colorsInput"
+               @oninput="OnColorsInput" />
+    </label>
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="error">@_error</div>
+    }
+
+    <div class="chips">
+        <button class="chip" @onclick="() => SetPreset(8)">Вводный: N = 8</button>
+        <button class="chip" @onclick="() => SetPreset(100)">Основной: N = 100</button>
+        <button class="chip" @onclick="() => SetPreset(256)">Особый: N = 256</button>
+        <button class="chip chip--warn" @onclick="Reset">Сбросить</button>
+    </div>
+
+    <div class="controls">
+        <button class="btn" @onclick="Apply" disabled="@(!_canApply)">Применить</button>
+    </div>
+</div>
+
+<div class="card card--quiz">
+    <h2>Вопрос 1</h2>
+    <p>Сколько бит нужно, чтобы закодировать <b>@_palette.ColorsCount</b> цвет(ов)?</p>
+    <input type="number" min="0"
+           value="@_answer1Input"
+           @oninput="OnAnswer1Input" />
+    <div class="controls">
+        <button class="btn" @onclick="CheckAnswer1">Проверить</button>
+    </div>
+    @if (_answer1Checked)
+    {
+        <div class="@(_answer1Correct ? "ok" : "error")">
+            @(_answer1Correct ? "Верно!" : $"Неверно. Правильный ответ: {_bitsPerPixel}.")
+        </div>
+
+        @if (!_answer1Correct)
+        {
+            <div class="steps">
+                <StepExplainer Number="1"
+                               Title="Что дано"
+                               Formula="N – число цветов палитры"
+                               Substitution="@($"N = {_palette.ColorsCount}")"
+                               Explanation="Каждый пиксель кодируется одним из N цветов."
+                               IsActive="true" />
+                <StepExplainer Number="2"
+                               Title="Формула глубины цвета"
+                               Formula="i = ⌈log₂ N⌉"
+                               Substitution="@_result.Substitution"
+                               Explanation="@_result.Explanation"
+                               IsActive="true" />
+                <StepExplainer Number="3"
+                               Title="Вывод"
+                               Formula="i – бит на пиксель"
+                               Substitution="@($"i = {_bitsPerPixel} бит")"
+                               Explanation="Именно столько бит нужно выделить на каждый пиксель при такой палитре."
+                               IsActive="true" />
+            </div>
+        }
+    }
+
+    <h2>Вопрос 2</h2>
+    <p>Если число цветов N уменьшить вдвое, глубина цвета i…</p>
+    <div class="chips">
+        <button class="chip" @onclick="() => CheckAnswer2(false)">увеличится на 1 бит</button>
+        <button class="chip" @onclick="() => CheckAnswer2(true)">уменьшится на 1 бит</button>
+        <button class="chip" @onclick="() => CheckAnswer2(false)">не изменится</button>
+    </div>
+    @if (_answer2Checked)
+    {
+        <div class="@(_answer2Correct ? "ok" : "error")">
+            @(_answer2Correct ? "Верно! log₂(N/2) = log₂N − 1." : "Неверно. Уменьшится ровно на 1 бит.")
+        </div>
+    }
+</div>
+
+@code {
+    private PaletteParameters _palette = new();
+    private ColorDepthResult _result = default!;
+    private int _bitsPerPixel;
+    private string _colorsInput = "16";
+    private string? _error;
+    private bool _canApply;
+
+    private string _answer1Input = "";
+    private bool _answer1Checked, _answer1Correct;
+    private bool _answer2Checked, _answer2Correct;
+
+    protected override void OnInitialized() => Recompute(16);
+
+    private void OnColorsInput(ChangeEventArgs e)
+    {
+        _colorsInput = e.Value?.ToString() ?? "";
+        _canApply = TryParseN(out _);
+    }
+
+    private void OnAnswer1Input(ChangeEventArgs e)
+    {
+        _answer1Input = e.Value?.ToString() ?? "";
+    }
+
+    private static bool HasLeadingZero(string s) =>
+        s.Length > 1 && s[0] == '0';
+
+    private bool TryParseN(out int n)
+    {
+        n = 0;
+        if (HasLeadingZero(_colorsInput))
+        {
+            _error = "Число не должно начинаться с нуля.";
+            return false;
+        }
+        if (!int.TryParse(_colorsInput, out n))
+        {
+            _error = "Введите целое число.";
+            return false;
+        }
+        if (n < PaletteParameters.MinColors || n > PaletteParameters.MaxColors)
+        {
+            _error = $"Число цветов должно быть от {PaletteParameters.MinColors} до {PaletteParameters.MaxColors}.";
+            return false;
+        }
+        _error = null;
+        return true;
+    }
+
+    private void Apply()
+    {
+        if (!TryParseN(out var n)) return;
+        Recompute(n);
+    }
+
+    private void SetPreset(int n)
+    {
+        _colorsInput = n.ToString();
+        _error = null;
+        _canApply = true;
+        Recompute(n);
+    }
+
+    private void Recompute(int n)
+    {
+        _palette = new PaletteParameters { ColorsCount = n };
+        _result = MathService.ComputeColorDepth(n);
+        _bitsPerPixel = _result.BitsPerPixel;
+        _answer1Input = "";
+        _answer1Checked = false; _answer1Correct = false;
+        _answer2Checked = false; _answer2Correct = false;
+    }
+
+    private void Reset()
+    {
+        _colorsInput = "16";
+        _error = null;
+        _canApply = false;
+        Recompute(16);
+    }
+
+    private void CheckAnswer1()
+    {
+        if (HasLeadingZero(_answer1Input))
+        {
+            _answer1Checked = true;
+            _answer1Correct = false;
+            return;
+        }
+        _answer1Checked = true;
+        _answer1Correct = int.TryParse(_answer1Input, out var v) && v == _bitsPerPixel;
+    }
+
+    private void CheckAnswer2(bool correct)
+    {
+        _answer2Checked = true;
+        _answer2Correct = correct;
+    }
+}
