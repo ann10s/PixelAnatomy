@@ -16,7 +16,7 @@
 |---|---|---|
 | .NET SDK | 10.0 | Среда выполнения и сборка |
 | Blazor Web App (Interactive Server) на платформе .NET | 10.0 | UI-фреймворк и веб-хост на C# |
-| Visual Studio 2026 (18.10.3) | – | Среда разработки |
+| Visual Studio 2026 | 18.10.3 | Среда разработки |
 | Браузер | Chrome (последняя версия) | Запуск и проверка |
 | Mermaid Live | https://mermaid.live | Диаграмма в README |
 
