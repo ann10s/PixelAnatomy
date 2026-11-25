@@ -1,37 +1,35 @@
 # PixelAnatomy
 
-Обучающее веб-приложение по теме **«Растровое изображение: глубина цвета и объём»**.
-Индивидуальный проект по информатике. Автор – **Анна Трипольская**.
+An educational web application on the topic **"Raster Image: Color Depth and Size"**.
+Individual Computer Science project.
 
-Приложение объясняет две задачи:
-1. Как по числу цветов в палитре **N** определить глубину цвета **i** (бит на пиксель).
-2. Как по размерам **W × H** и глубине цвета **i** вычислить объём изображения **V**
-   в битах, байтах и килобайтах.
+The application explains two tasks:
+1. How to determine the color depth **i** (bits per pixel) from the number of colors in the palette **N**.
+2. How to calculate the image size **V** in bits, bytes, and kilobytes from the dimensions **W × H** and color depth **i**.
 
 ---
 
-## 1. Инструменты и версии
+## 1. Tools and Versions
 
-| Инструмент | Версия | Зачем |
+| Tool | Version | Purpose |
 |---|---|---|
-| .NET SDK | 10.0 | Среда выполнения и сборка |
-| Blazor Web App (Interactive Server) на платформе .NET | 10.0 | UI-фреймворк и веб-хост на C# |
-| Visual Studio 2026 | 18.10.3 | Среда разработки |
-| Браузер | Chrome (последняя версия) | Запуск и проверка |
-| Mermaid Live | https://mermaid.live | Диаграмма в README |
+| .NET SDK | 10.0 | Runtime and build environment |
+| Blazor Web App (Interactive Server) on .NET | 10.0 | UI framework and web host in C# |
+| Visual Studio 2026 (18.10.3) | – | Development environment (IDE) |
+| Browser | Chrome (latest version) | Running and testing |
+| Mermaid Live | https://mermaid.live | Diagram in README |
 
 ---
 
-## 2. Запуск
+## 2. Running the Application
 
-### Локально из Visual Studio
-1. Открыть `PixelAnatomy.sln`.
-2. Установить рабочую нагрузку **ASP.NET and web development** в Visual Studio
-   Installer, если её нет.
-3. `F5` (или `Ctrl+F5` без отладки).
-4. Открыть в браузере адрес из консоли `https://localhost:xxxx`.
+### Locally from Visual Studio
+1. Open `PixelAnatomy.sln`.
+2. Install the **ASP.NET and web development** workload in Visual Studio Installer if it is not installed.
+3. Press `F5` (or `Ctrl+F5` without debugging).
+4. Open the URL from the console `https://localhost:xxxx` in your browser.
 
-### Локально из терминала
+### Locally from Terminal
 ```powershell
 cd PixelAnatomy
 dotnet restore
@@ -39,237 +37,178 @@ dotnet build
 dotnet run
 ```
 
-Приложение откроется по адресу, который выведет консоль.
+The application will open at the address printed in the console.
 
 ---
 
-## 3. Ограничения
+## 3. Limitations
 
-- Работаем **без сжатия** изображения, **без заголовков** и служебных данных.
-- Реальные картинки не загружаются и не сохраняются – только числовые параметры.
-- Глубина цвета **i** ограничена диапазоном 1..48 бит, размеры W и H –
-  1..100000 пикселей.
-- Число цветов палитры **N** – 2..16 777 216 (2^24).
-- Ввод – только целые числа. Ведущие нули (`040`) запрещены; дробные и текст
-  не принимаются.
-- Визуализация сетки пикселей – условная модель: если сторона больше 12,
-  показывается 12 (с подписью реального размера).
+- Works **without** image compression, **without headers**, and without metadata.
+- Real images are neither uploaded nor saved – only numerical parameters are used.
+- Color depth **i** is restricted to the range 1..48 bits, dimensions W and H – 1..100000 pixels.
+- Number of palette colors **N** – 2..16,777,216 (2²⁴).
+- Input – integers only. Leading zeros (`040`) are forbidden; decimals and text are not accepted.
+- Pixel grid visualization is a schematic model: if a side is greater than 12, 12 is shown (with a label indicating the actual size).
 
 ---
 
-## 4. Архитектура
+## 4. Architecture
 
-### 4.1. Части приложения
+### 4.1. Application Parts
 
-| Часть | Папка / файлы | За что отвечает |
+| Part | Folder / Files | Responsibility |
 |---|---|---|
-| **Точка входа** | `Program.cs` | Создаёт веб-хост, регистрирует сервисы (`IImageMathService`), подключает Razor Components и Interactive Server. |
-| **Корневой HTML** | `Components/App.razor` | Каркас страницы: `<head>`, ссылки на CSS, подключение Blazor. |
-| **Маршрутизация** | `Components/Routes.razor` | Читает URL и решает, какую страницу из `Pages/` показать. |
-| **Layout** | `Components/Layout/MainLayout.razor`, `NavMenu.razor` | Внешний вид: боковое меню, основная область. |
-| **Страницы** | `Components/Pages/*.razor` | Экраны: главная, Задача 1, Задача 2, Самостоятельные задачи, Error, NotFound. |
-| **Переиспользуемые компоненты** | `Components/PixelGrid.razor`, `Components/StepExplainer.razor` | Визуализация сетки пикселей и карточки шагов разбора. |
-| **Модели** | `Models/*.cs` | Данные: `PaletteParameters`, `ImageParameters`, `ColorDepthResult`, `VolumeResult`. |
-| **Сервисы** | `Services/IImageMathService.cs`, `Services/ImageMathService.cs` | Чистые расчёты: глубина цвета по N и объём по W, H, i. |
-| **Стили** | `wwwroot/app.css` | Минималистичное оформление, постоянный смысл цветов. |
+| **Entry Point** | `Program.cs` | Creates the web host, registers services (`IImageMathService`), connects Razor Components and Interactive Server. |
+| **Root HTML** | `Components/App.razor` | Page skeleton: `<head>`, CSS links, Blazor script connection. |
+| **Routing** | `Components/Routes.razor` | Reads the URL and decides which page from `Pages/` to display. |
+| **Layout** | `Components/Layout/MainLayout.razor`, `NavMenu.razor` | Appearance: sidebar menu, main content area. |
+| **Pages** | `Components/Pages/*.razor` | Screens: Home, Task 1, Task 2, Self-Check Tasks, Error, NotFound. |
+| **Reusable Components** | `Components/PixelGrid.razor`, `Components/StepExplainer.razor` | Pixel grid visualization and step-by-step explanation cards. |
+| **Models** | `Models/*.cs` | Data: `PaletteParameters`, `ImageParameters`, `ColorDepthResult`, `VolumeResult`. |
+| **Services** | `Services/IImageMathService.cs`, `Services/ImageMathService.cs` | Pure calculations: color depth by N and image size by W, H, i. |
+| **Styles** | `wwwroot/app.css` | Minimalist styling, consistent color semantics. |
 
-### 4.2. Где выполняются расчёты и хранится состояние
+### 4.2. Where Calculations Run and State is Stored
 
-- **Расчёты** – только в `Services/ImageMathService.cs`. Он **stateless**: каждая
-  операция получает входные числа и возвращает `record`-результат
-  (`ColorDepthResult` или `VolumeResult`).
-- **Состояние** – живёт в `@code`-блоках страниц (`_palette`, `_img`, `_result`,
-  `_step`, `_answer1`, `_tasks` и т.п.). Это сделано осознанно: состояние
-  привязано к конкретной странице, а не к сервису, и не переживает перезагрузку
-  браузера.
-- **Правило «смена данных → сброс разбора»** реализовано в `Recompute(...)`:
-  при изменении исходных данных все шаги, ответы и подсветки сбрасываются.
+- **Calculations** – strictly in `Services/ImageMathService.cs`. It is **stateless**: each operation takes input numbers and returns a `record` result (`ColorDepthResult` or `VolumeResult`).
+- **State** – lives in the `@code` blocks of the pages (`_palette`, `_img`, `_result`, `_step`, `_answer1`, `_tasks`, etc.). This is intentional: state is tied to a specific page rather than a service and does not persist across browser reloads.
+- **The "Data Change → Reset Explanation" rule** is implemented in `Recompute(...)`: when input data changes, all steps, answers, and highlights are reset.
 
-### 4.3. Схема взаимодействия
+### 4.3. Interaction Flow
 
 ```mermaid
 flowchart TD
-    U[Пользователь] -->|ввод N / W,H,i| Page[Страница .razor: Task1 / Task2]
-    Page -->|вызов| Svc[IImageMathService]
+    U[User] -->|input N / W,H,i| Page[Page .razor: Task1 / Task2]
+    Page -->|call| Svc[IImageMathService]
     Svc -->|ColorDepthResult / VolumeResult| Page
-    Page -->|обновление состояния @code| State[(Состояние страницы)]
+    Page -->|update @code state| State[(Page State)]
     State -->|RenderTree| Grid[PixelGrid]
     State -->|RenderTree| Steps[StepExplainer]
     Grid -->|HTML+CSS| U
     Steps -->|HTML+CSS| U
 
-    User2[Пользователь: Самостоятельные] --> SC[SelfCheck.razor]
-    SC -->|List TaskItem| State2[(Локальный список задач)]
+    User2[User: Self-Check] --> SC[SelfCheck.razor]
+    SC -->|List TaskItem| State2[(Local Task List)]
     State2 -->|CheckAll| Svc
-    Svc -->|правильно/неправильно| SC
+    Svc -->|correct/incorrect| SC
 ```
 
-### 4.4. Путь одного действия пользователя
+### 4.4. Path of a Single User Action
 
-Пример: пользователь открывает `/task2`, вводит `1920`, `1080`, `24` и нажимает
-«Применить».
+Example: the user opens `/task2`, enters `1920`, `1080`, `24`, and clicks "Apply".
 
-1. **`@oninput`** в `<input>` вызывает `OnWInput` / `OnHInput` / `OnIInput`.
-   Каждый сохраняет строку в `_wInput` / `_hInput` / `_iInput` и вызывает
-   `TryParseAll`.
-2. `TryParseAll` проверяет: непусто, нет ведущего нуля, парсится как `int`,
-   попадает в диапазон. Если хоть одно условие не выполнено – `_canApply = false`,
-   кнопка «Применить» остаётся неактивной, снизу появляется сообщение об ошибке.
-3. При нажатии «Применить» вызывается `Apply → Recompute(w, h, i)`.
-4. `Recompute` формирует `ImageParameters`, вызывает
-   `MathService.ComputeVolume(w, h, i)`, сохраняет `VolumeResult`,
-   сбрасывает шаги и ответы.
-5. Blazor перерисовывает страницу: обновляются `<PixelGrid>` и бейджи с числами.
-6. Если пользователь отвечает на вопрос 1 неверно – под вопросом рендерятся три
-   `<StepExplainer>` с полным ходом решения по **текущим** числам.
+1. **`@oninput`** on `<input>` triggers `OnWInput` / `OnHInput` / `OnIInput`. Each saves the string to `_wInput` / `_hInput` / `_iInput` and calls `TryParseAll`.
+2. `TryParseAll` checks: not empty, no leading zero, parses as `int`, within range. If any condition fails – `_canApply = false`, the "Apply" button stays disabled, and an error message appears below.
+3. Clicking "Apply" invokes `Apply → Recompute(w, h, i)`.
+4. `Recompute` builds `ImageParameters`, calls `MathService.ComputeVolume(w, h, i)`, stores `VolumeResult`, and resets steps and answers.
+5. Blazor re-renders the page: `<PixelGrid>` and numerical badges update.
+6. If the user answers Question 1 incorrectly – three `<StepExplainer>` components render below the question showing the full step-by-step solution for the **current** numbers.
 
-### 4.5. Почему так организовано
+### 4.5. Why It Is Organized This Way
 
-- **Модели и сервис отделены от UI** – их можно протестировать в консоли или
-  юнит-тестами без Blazor. Это требование ТЗ: «расчёты отделить от оформления».
-- **Страницы хранят состояние** – проще объяснить на защите: «вот здесь
-  переменные, они меняются по событию».
-- **Переиспользуемые компоненты** (`PixelGrid`, `StepExplainer`) не знают,
-  откуда пришли данные: они получают только параметры. Это делает визуализацию
-  универсальной.
-- **Точная арифметика**: `long` для пикселей и битов, `double` – только для
-  производных (байты, КБ). Округление к `int` при парсинге с ведущими нулями
-  выполняется через `long.TryParse` без плавающей точки.
+- **Models and service are separated from UI** – they can be tested in a console app or via unit tests without Blazor. This meets the specification requirement: "separate calculations from presentation".
+- **Pages store state** – easier to explain during the project defense: "here are the variables, they update on events".
+- **Reusable components** (`PixelGrid`, `StepExplainer`) do not know where the data comes from: they only receive parameters. This makes the visualization universal.
+- **Exact arithmetic**: `long` for pixels and bits, `double` – only for derived units (bytes, KB). Integer validation with leading-zero checks uses `long.TryParse` without floating-point arithmetic.
 
 ---
 
-## 5. Обоснование технологии
+## 5. Technology Justification
 
-**Язык: C#. Фреймворк: Blazor Web App (Interactive Server), .NET 10.**
+**Language: C#. Framework: Blazor Web App (Interactive Server), .NET 10.**
 
-C# – строго типизированный язык. Это напрямую соответствует требованию проекта:
-модель, расчёты и проверка ответов реализованы на языке со статической
-типизацией, компилятор ловит ошибки до запуска.
-
+C# is a strongly typed language. This directly aligns with the project requirement: the model, calculations, and answer verification are implemented in a statically typed language where the compiler catches errors before runtime.
 
 ---
 
-## 6. Источники
+## 6. Sources
 
-- Школьный курс информатики, тема «Кодирование и измерение информации»:
-  формулы N = 2^i, i = ⌈log₂ N⌉, V = W×H×i.
-- Документация Microsoft Learn:
-  - «Blazor Web App» – https://learn.microsoft.com/aspnet/core/blazor/
-  - «Razor components» –
-    https://learn.microsoft.com/aspnet/core/blazor/components/
-- Справочник по Mermaid: https://mermaid.js.org/
+- School Computer Science curriculum, topic "Information Encoding and Measurement": formulas N = 2^i, i = ⌈log₂ N⌉, V = W×H×i.
+- Microsoft Learn Documentation:
+  - "Blazor Web App" – https://microsoft.com
+  - "Razor components" – https://microsoft.comcomponents/
+- Mermaid Documentation: https://js.org
 
 ---
 
-## 7. Заметка об использовании ИИ
+## 7. Note on AI Usage
 
-Технологию (C#, Blazor Web App, Interactive Server) я выбрала самостоятельно,
-ориентируясь на требования проекта: строго типизированный язык + веб-технология
-на его основе. Решение опирается на официальную документацию Microsoft и на
-учебный материал по информатике.
+I chose the technology stack (C#, Blazor Web App, Interactive Server) independently based on the project requirements: a strongly typed language + a web technology built on top of it. The solution relies on official Microsoft documentation and Computer Science educational materials.
 
-ИИ (ассистент) использовался на этапах:
+An AI assistant was used at the following stages:
 
-1. **Проектирование архитектуры.** Обсуждали, как разделить ответственность
-   между слоями. Итоговое разделение на `Models / Services / Components / Pages`
-   принято осознанно: сервис `ImageMathService` сделан stateless, страницы
-   хранят состояние локально.
-2. **Разработка кода.** ИИ помогал с шаблонами `.razor` и с типовыми ошибками
-   Razor (например, RZ9986 – вложенные кавычки в атрибутах компонентов).
-   Все советы проверялись сборкой `dotnet build` и ручным запуском.
-3. **Поиск ошибок.** ИИ указал на недопустимость `@oninput="..."` со
-   строковым литералом в кавычках.
+1. **Architecture design.** Discussed how to separate responsibilities across layers. The final separation into `Models / Services / Components / Pages` was a conscious choice: `ImageMathService` was made stateless, while pages store state locally.
+2. **Code development.** AI assisted with `.razor` templates and common Razor errors (such as RZ9986 – nested quotes in component attributes). Every suggestion was verified using `dotnet build` and manual testing.
+3. **Debugging.** AI pointed out that using `@oninput="..."` with a string literal in quotes is invalid.
 
-**Что ИИ советовал, а я отклонила:** идею сделать `double`-поля для W/H (дробные
-пиксели). Это бессмысленно – оставлены `int`.
+**What AI suggested that I rejected:** the idea of using `double` fields for W/H (fractional pixels). That makes no sense – kept them as `int`.
 
-**Как проверяла результат ИИ:** каждое предложение → `dotnet build` → запуск
-приложения → ручная проверка на контрольных числах (см. раздел 8).
+**How I verified AI output:** every suggestion → `dotnet build` → running the app → manual verification against test numbers (see Section 8).
 
 ---
 
-## 8. Проверки (ожидаемое / фактическое)
+## 8. Test Cases (Expected / Actual)
 
-Пять сценариев, покрывающих обычные данные, особый случай, неправильный ввод,
-изменение параметров и повторный запуск.
+Five scenarios covering standard data, edge cases, invalid input, parameter changes, and application restart.
 
-### Проверка 1. Обычные данные
-**Шаги:** `/task2`, ввести W = 1920, H = 1080, i = 24, нажать «Применить».
-**Ожидается:** P = 2 073 600, V_бит = 49 766 400, V_байт = 6 220 800,
-V_КБ ≈ 6075, V_МБ ≈ 5.93. Сетка – условная модель 12×12.
-**Факт:** совпадает. Отображается палитра условная (i = 24 → 2^24 цветов,
-показывается 64).
+### Test 1. Standard Data
+**Steps:** `/task2`, enter W = 1920, H = 1080, i = 24, click "Apply".
+**Expected:** P = 2,073,600, V_bits = 49,766,400, V_bytes = 6,220,800, V_KB ≈ 6075, V_MB ≈ 5.93. Grid – schematic 12×12 model.
+**Actual:** Matches. A schematic palette is displayed (i = 24 → 2^24 colors, 64 shown).
 
-### Проверка 2. Особый случай – степень двойки и не степень двойки
-**Шаги:** `/task1`, N = 8 → нажать «Применить». Затем N = 100 → «Применить».
-**Ожидается:** N = 8 → i = 3 бит; N = 100 → i = 7 бит (округление вверх).
-**Факт:** совпадает; в разборе для N = 100 показано «2^6 = 64 < 100 ≤ 128 = 2^7».
+### Test 2. Edge Case – Power of Two vs. Non-Power of Two
+**Steps:** `/task1`, N = 8 → click "Apply". Then N = 100 → "Apply".
+**Expected:** N = 8 → i = 3 bits; N = 100 → i = 7 bits (rounded up).
+**Actual:** Matches; the explanation for N = 100 displays "2^6 = 64 < 100 ≤ 128 = 2^7".
 
-### Проверка 3. Неправильный ввод
-**Шаги:** `/task1`, ввести `040` в поле N.
-**Ожидается:** появляется сообщение «Число не должно начинаться с нуля»,
-кнопка «Применить» неактивна.
-**Факт:** совпадает. Аналогично для `0`, пустого поля, дробного и текста.
+### Test 3. Invalid Input
+**Steps:** `/task1`, enter `040` in field N.
+**Expected:** The message "Number must not start with zero" appears, and the "Apply" button is disabled.
+**Actual:** Matches. Same behavior for `0`, empty field, decimals, and text.
 
-### Проверка 4. Изменение параметров
-**Шаги:** `/task2`, применить 16×16, i = 4. Затем изменить W на 10, H на 11,
-i на 8, снова применить.
-**Ожидается:** предыдущий разбор, ответы и подсветки сбрасываются; P = 110,
-V_бит = 880; сетка рисуется реальным размером 10×11 (не условно), потому что
-обе стороны ≤ 12.
-**Факт:** совпадает.
+### Test 4. Changing Parameters
+**Steps:** `/task2`, apply 16×16, i = 4. Then change W to 10, H to 11, i to 8, and apply again.
+**Expected:** Previous explanation, answers, and highlights reset; P = 110, V_bits = 880; the grid is drawn at actual size 10×11 (not schematic) because both sides are ≤ 12.
+**Actual:** Matches.
 
-### Проверка 5. Повторный запуск
-**Шаги:** остановить приложение (Shift+F5). Запустить заново. Открыть
-`/selfcheck`.
-**Ожидается:** состояние сбрасывается – все поля пустые, оценка не показывается
-до нажатия «Проверить всё».
-**Факт:** совпадает (состояние живёт в памяти серверного процесса).
+### Test 5. Application Restart
+**Steps:** Stop the application (Shift+F5). Start it again. Open `/selfcheck`.
+**Expected:** State resets – all fields are empty, and the grade is not shown until "Check All" is clicked.
+**Actual:** Matches (state lives in the server process memory).
 
 ---
 
-## 9. Тест одноклассником
+## 9. Peer Testing
 
-**Дата:** 16.10.2026
+**Date:** 16.10.2026
 
-**Задача:** пройти приложение без устных подсказок, объяснить ключевой шаг
-и решить одну из самостоятельных задач.
+**Task:** navigate the application without verbal hints, explain the key step, and solve one of the self-check problems.
 
-**Что записал тестировщик:**
-- Смог ли открыть сайт: да
-- Понял ли, куда вводить данные: да
-- Разобрался ли с шагами «Далее / Назад»: да
-- Смог ли объяснить формулу P = W×H своими словами: да
-- Решил ли задачу №1 из `/selfcheck` верно с первой попытки: да
+**Tester notes:**
+- Able to open the website: yes
+- Understood where to enter data: yes
+- Figured out the "Next / Back" steps: yes
 
-**Внесённые улучшения по результатам:**
-- убран блок с определением цвета пикселя в визуализации (сейчас его нет)
-
----
-
-## 10. Что где лежит (карта исходников)
-
-```
 PixelAnatomy/
-├── Program.cs                     // Регистрация сервисов, запуск
+├── Program.cs                     // Service registration, app startup
 ├── PixelAnatomy.csproj            // net10.0, ImplicitUsings, Nullable
-├── README.md                      // этот файл
+├── README.md                      // This file
 ├── Components/
-│   ├── App.razor                  // Корневой HTML
-│   ├── Routes.razor               // Маршрутизатор
-│   ├── _Imports.razor             // Общие @using
+│   ├── App.razor                  // Root HTML
+│   ├── Routes.razor               // Router
+│   ├── _Imports.razor             // Global @using directives
 │   ├── Layout/
 │   │   ├── MainLayout.razor
 │   │   └── NavMenu.razor
 │   ├── Pages/
-│   │   ├── Home.razor             // Стартовая: название, инструкция, автор
-│   │   ├── Task1Palette.razor     // /task1  – глубина цвета
-│   │   ├── Task2Volume.razor      // /task2  – объём изображения
-│   │   ├── SelfCheck.razor        // /selfcheck – 7 задач + оценка
+│   │   ├── Home.razor             // Landing page: title, instructions, author
+│   │   ├── Task1Palette.razor     // /task1 – color depth
+│   │   ├── Task2Volume.razor      // /task2 – image size
+│   │   ├── SelfCheck.razor        // /selfcheck – 7 tasks + grading
 │   │   ├── Error.razor
 │   │   └── NotFound.razor
-│   ├── PixelGrid.razor            // Визуализация сетки пикселей
-│   └── StepExplainer.razor        // Карточка одного шага разбора
+│   ├── PixelGrid.razor            // Pixel grid visualization
+│   └── StepExplainer.razor        // Single explanation step card
 ├── Models/
 │   ├── PaletteParameters.cs
 │   ├── ImageParameters.cs
@@ -277,7 +216,6 @@ PixelAnatomy/
 │   └── VolumeResult.cs
 ├── Services/
 │   ├── IImageMathService.cs
-│   └── ImageMathService.cs        // Все расчёты – здесь
+│   └── ImageMathService.cs        // All calculations live here
 └── wwwroot/
-    └── app.css                    // Оформление
-```
+    └── app.css                    // Styling
