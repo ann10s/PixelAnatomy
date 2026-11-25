@@ -189,6 +189,9 @@ Five scenarios covering standard data, edge cases, invalid input, parameter chan
 - Understood where to enter data: yes
 - Figured out the "Next / Back" steps: yes
 
+## 10. Project Structure
+
+```
 PixelAnatomy/
 ├── Program.cs                     // Service registration, app startup
 ├── PixelAnatomy.csproj            // net10.0, ImplicitUsings, Nullable
@@ -219,3 +222,4 @@ PixelAnatomy/
 │   └── ImageMathService.cs        // All calculations live here
 └── wwwroot/
     └── app.css                    // Styling
+```
